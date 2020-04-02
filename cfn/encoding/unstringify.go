@@ -11,20 +11,25 @@ import (
 func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, error) {
 	m, ok := i.(map[string]interface{})
 	if !ok {
+		log.Printf("\nCannot convert %T to struct\n", i)
 		return zeroValue, fmt.Errorf("Cannot convert %T to struct", i)
 	}
 
 	out := reflect.New(t)
+	log.Printf("\nout initial in convertStruct %+v\n", out)
 
 	err := Unstringify(m, out.Interface())
 	if err != nil {
+		log.Printf("\nreturning zeroValue from convertStruct\n")
 		return zeroValue, err
 	}
 
 	if !pointer {
+		log.Printf("\nout.Elem() %+v\n", out.Elem())
 		out = out.Elem()
 	}
 
+	log.Printf("\nreturning out: %+v, nil\n", out)
 	return out, nil
 }
 
@@ -61,7 +66,7 @@ func convertSlice(i interface{}, t reflect.Type, pointer bool) (reflect.Value, e
 		out = out.Elem()
 	}
 
-	log.Printf("\nFinal out is: %+v\n", out)
+	log.Printf("\nFinal out is:  %+v\n", out)
 	return out, nil
 }
 
@@ -196,30 +201,37 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 	switch t.Kind() {
 	case reflect.Struct:
 		log.Printf("\nConverting struct %v\n", t)
+		log.Printf("\nInterface %v\n", i)
 		return convertStruct(i, t, pointer)
 
 	case reflect.Slice:
 		log.Printf("\nConverting slice %v\n", t)
+		log.Printf("\nInterface %v\n", i)
 		return convertSlice(i, t, pointer)
 
 	case reflect.Map:
 		log.Printf("\nConverting map %v\n", t)
+		log.Printf("\nInterface %v\n", i)
 		return convertMap(i, t, pointer)
 
 	case reflect.String:
 		log.Printf("\nConverting string %v\n", t)
+		log.Printf("\nInterface %v\n", i)
 		return convertString(i, pointer)
 
 	case reflect.Bool:
 		log.Printf("\nConverting bool %v\n", t)
+		log.Printf("\nInterface %v\n", i)
 		return convertBool(i, pointer)
 
 	case reflect.Int:
 		log.Printf("\nConverting int %v\n", t)
+		log.Printf("\nInterface %v\n", i)
 		return convertInt(i, pointer)
 
 	case reflect.Float64:
 		log.Printf("\nConverting float64 %v\n", t)
+		log.Printf("\nInterface %v\n", i)
 		return convertFloat64(i, pointer)
 
 	default:
