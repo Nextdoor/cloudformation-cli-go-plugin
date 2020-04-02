@@ -10,6 +10,7 @@ import (
 
 func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, error) {
 	m, ok := i.(map[string]interface{})
+	log.Printf("\nin convertStruct, m %+v\n", m)
 	if !ok {
 		log.Printf("\nCannot convert %T to struct\n", i)
 		return zeroValue, fmt.Errorf("Cannot convert %T to struct", i)
@@ -19,6 +20,7 @@ func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, 
 	log.Printf("\nout initial in convertStruct %+v\n", out)
 
 	err := Unstringify(m, out.Interface())
+	log.Printf("after Unstringify m: %+v, out: %+v", m, out)
 	if err != nil {
 		log.Printf("\nreturning zeroValue from convertStruct\n")
 		return zeroValue, err
@@ -243,6 +245,7 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 // Unstringify takes a stringified representation of a value
 // and populates it into the supplied interface
 func Unstringify(data map[string]interface{}, v interface{}) error {
+	log.Printf("Unstringify data: %+v, v: %+v", data, v)
 	t := reflect.TypeOf(v).Elem()
 
 	val := reflect.ValueOf(v).Elem()
