@@ -35,7 +35,7 @@ func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, 
 
 func convertSlice(i interface{}, t reflect.Type, pointer bool) (reflect.Value, error) {
 	log.Printf("\nConverting slice of type %T\n", t)
-	log.Printf("\nType  is : %s\n", t.Kind())
+	log.Printf("\n Type  is : %s\n", t.Kind())
 
 	s, ok := i.([]interface{})
 	if !ok {
