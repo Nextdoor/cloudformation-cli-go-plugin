@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -28,20 +29,31 @@ func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, 
 }
 
 func convertSlice(i interface{}, t reflect.Type, pointer bool) (reflect.Value, error) {
+	log.Printf("\nConverting slice of type %T\n", t)
+	log.Printf("\nType is: %s\n", t.Kind())
+
 	s, ok := i.([]interface{})
 	if !ok {
+		log.Printf("\nFailed to convert %T to slice\n", i)
 		return zeroValue, fmt.Errorf("Cannot convert %T to slice", i)
 	}
 
 	out := reflect.New(t)
+	log.Printf("Out is: %+v", out)
+	log.Printf("\n\n")
 	out.Elem().Set(reflect.MakeSlice(t, len(s), len(s)))
 
 	for j, v := range s {
+		log.Printf("\nIterating over slice; j: %+v, v: %+v\n", j, v)
+		log.Printf("\nCalling convertType with t.Elem()%+v\n", t.Elem())
 		val, err := convertType(t.Elem(), v)
+		log.Printf("\nval: %+v, err: %+v\n", val, err)
 		if err != nil {
+			log.Printf("\nelem is not of type type's Kind is not Array, Chan, Map, Ptr, or Slice: %s\n", err.Error())
 			return zeroValue, err
 		}
 
+		log.Printf("\nSetting out.Elem().Index(j).Set(val) with val %+v\n", val)
 		out.Elem().Index(j).Set(val)
 	}
 
@@ -49,6 +61,7 @@ func convertSlice(i interface{}, t reflect.Type, pointer bool) (reflect.Value, e
 		out = out.Elem()
 	}
 
+	log.Printf("\nFinal out is: %+v\n", out)
 	return out, nil
 }
 
@@ -182,27 +195,35 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 
 	switch t.Kind() {
 	case reflect.Struct:
+		log.Printf("\nConverting struct %v\n", t)
 		return convertStruct(i, t, pointer)
 
 	case reflect.Slice:
+		log.Printf("\nConverting slice %v\n", t)
 		return convertSlice(i, t, pointer)
 
 	case reflect.Map:
+		log.Printf("\nConverting map %v\n", t)
 		return convertMap(i, t, pointer)
 
 	case reflect.String:
+		log.Printf("\nConverting string %v\n", t)
 		return convertString(i, pointer)
 
 	case reflect.Bool:
+		log.Printf("\nConverting bool %v\n", t)
 		return convertBool(i, pointer)
 
 	case reflect.Int:
+		log.Printf("\nConverting int %v\n", t)
 		return convertInt(i, pointer)
 
 	case reflect.Float64:
+		log.Printf("\nConverting float64 %v\n", t)
 		return convertFloat64(i, pointer)
 
 	default:
+		log.Printf("\nUnsupported type %v\n", t)
 		return zeroValue, fmt.Errorf("Unsupported type %v", t)
 	}
 }
