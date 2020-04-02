@@ -20,8 +20,8 @@ func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, 
 	out := reflect.New(t)
 	log.Printf("\nout initial in convertStruct %+v\n", out)
 
-	//err := Unstringify(m, out.Interface())
-	err := mapstructure.Decode(m, out.Interface())
+	err := Unstringify(m, out.Interface())
+	//err := mapstructure.Decode(m, out.Interface())
 	log.Printf("after Unstringify m: %+v, out: %+v", m, out)
 	if err != nil {
 		log.Printf("\nreturning zeroValue from convertStruct\n")
