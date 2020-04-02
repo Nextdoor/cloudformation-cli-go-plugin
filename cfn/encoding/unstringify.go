@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"github.com/mitchellh/mapstructure"
 )
 
 func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, error) {
@@ -19,7 +20,8 @@ func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, 
 	out := reflect.New(t)
 	log.Printf("\nout initial in convertStruct %+v\n", out)
 
-	err := Unstringify(m, out.Interface())
+	//err := Unstringify(m, out.Interface())
+	err := mapstructure.Decode(m, out.Interface())
 	log.Printf("after Unstringify m: %+v, out: %+v", m, out)
 	if err != nil {
 		log.Printf("\nreturning zeroValue from convertStruct\n")
@@ -247,8 +249,10 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 func Unstringify(data map[string]interface{}, v interface{}) error {
 	log.Printf("Unstringify data: %+v, v: %+v", data, v)
 	t := reflect.TypeOf(v).Elem()
+	log.Printf("\nt: %+v\n", t)
 
 	val := reflect.ValueOf(v).Elem()
+	log.Printf("\nval: %+v\n", val)
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -260,8 +264,11 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 		}
 
 		if value, ok := data[jsonName]; ok {
+			log.Printf("\nUnstringify: value: %+v\n", value)
 			newValue, err := convertType(f.Type, value)
+			log.Printf("\nUnstringify: newValue: %+v\n", newValue)
 			if err != nil {
+				log.Println("\nUnstringify: err in value check\n")
 				return err
 			}
 
@@ -269,5 +276,6 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 		}
 	}
 
+	log.Printf("\nUnstringify val at end: %+v\n", val)
 	return nil
 }
