@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"github.com/mitchellh/mapstructure"
 )
 
 func convertStruct(i interface{}, t reflect.Type, pointer bool) (reflect.Value, error) {
