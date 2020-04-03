@@ -54,6 +54,7 @@ func convertSlice(i interface{}, t reflect.Type, pointer bool) (reflect.Value, e
 	for j, v := range s {
 		log.Printf("\nIterating over slice; j: %+v, v: %+v\n", j, v)
 		log.Printf("\nCalling convertType with t.Elem()%+v\n", t.Elem())
+
 		val, err := convertType(t.Elem(), v)
 		log.Printf("\nval: %+v, err: %+v\n", val, err)
 		if err != nil {
