@@ -254,17 +254,22 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 	val := reflect.ValueOf(v).Elem()
 	log.Printf("\nval: %+v\n", val)
 
+	log.Printf("\nt.NumField(): %d \n", t.NumField())
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
+		log.Printf("\nUnstringify f: %+v\n", f)
 
 		jsonName := f.Name
+		log.Printf("\njsonName %s \n", jsonName)
 		jsonTag := strings.Split(f.Tag.Get("json"), ",")
+		log.Printf("\njsonTag %s \n", jsonTag)
 		if len(jsonTag) > 0 && jsonTag[0] != "" {
+			log.Println("setting to jsonTag[0]")
 			jsonName = jsonTag[0]
 		}
 
 		if value, ok := data[jsonName]; ok {
-			log.Printf("\nUnstringify: value: %+v\n", value)
+			log.Printf("\nUnstringify:  value: %+v\n", value)
 			newValue, err := convertType(f.Type, value)
 			log.Printf("\nUnstringify: newValue: %+v\n", newValue)
 			if err != nil {
