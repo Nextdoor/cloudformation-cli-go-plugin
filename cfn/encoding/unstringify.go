@@ -251,7 +251,7 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 	log.Printf("\nt: %+v\n", t)
 
 	val := reflect.ValueOf(v).Elem()
-	log.Printf("\nval: %+v\n", val)
+	log.Printf("\nUnstringify val: %+v\n", val)
 
 	log.Printf("\nt.NumField(): %d \n", t.NumField())
 	for i := 0; i < t.NumField(); i++ {
@@ -267,6 +267,9 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 			jsonName = jsonTag[0]
 		}
 
+		log.Printf("\nUnstringify: data before indexing: %+v\n", data)
+		log.Printf("\nUnstringify: jsonName before indexing: %+v\n", jsonName)
+		log.Printf("\nUnstringify: data[jsonName]: %+v\n", data[jsonName])
 		if value, ok := data[jsonName]; ok {
 			log.Printf("\nUnstringify:  value: %+v\n", value)
 			newValue, err := convertType(f.Type, value)
