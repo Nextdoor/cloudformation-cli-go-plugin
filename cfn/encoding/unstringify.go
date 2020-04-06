@@ -252,8 +252,8 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 	for k := range data {
 		log.Printf("\nkey: %s\n", k)
 		val := data[k]
-		strings.Replace(k, "/", "", 1)
-		cleanMap[k] = val
+		strippedKey := strings.Replace(k, "/", "", 1)
+		cleanMap[strippedKey] = val
 	}
 	log.Printf("\ncleanMap: %+v\n", cleanMap)
 	t := reflect.TypeOf(v).Elem()
