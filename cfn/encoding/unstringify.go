@@ -248,9 +248,14 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 // and populates it into the supplied interface
 func Unstringify(data map[string]interface{}, v interface{}) error {
 	log.Printf("Unstringify data: %+v, v: %+v", data, v)
+	cleanMap := make(map[string]interface{})
 	for k := range data {
 		log.Printf("\nkey: %s\n", k)
+		val := data[k]
+		strings.Replace(k, "/", "", 1)
+		cleanMap[k] = val
 	}
+	log.Printf("\ncleanMap: %+v\n", cleanMap)
 	t := reflect.TypeOf(v).Elem()
 	log.Printf("\nt: %+v\n", t)
 
@@ -271,10 +276,10 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 			jsonName = jsonTag[0]
 		}
 
-		log.Printf("\nUnstringify: data before indexing: %+v\n", data)
+		log.Printf("\nUnstringify: data before indexing: %+v\n", cleanMap)
 		log.Printf("\nUnstringify: jsonName before indexing: %+v\n", jsonName)
-		log.Printf("\nUnstringify: data[jsonName]: %+v\n", data[jsonName])
-		if value, ok := data[jsonName]; ok {
+		log.Printf("\nUnstringify: data[jsonName]: %+v\n", cleanMap[jsonName])
+		if value, ok := cleanMap[jsonName]; ok {
 			log.Printf("\nUnstringify:  value: %+v\n", value)
 			newValue, err := convertType(f.Type, value)
 			log.Printf("\nUnstringify: newValue: %+v\n", newValue)
