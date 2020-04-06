@@ -248,6 +248,9 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 // and populates it into the supplied interface
 func Unstringify(data map[string]interface{}, v interface{}) error {
 	log.Printf("Unstringify data: %+v, v: %+v", data, v)
+	for k := range data {
+		log.Printf("\nkey: %s\n", k)
+	}
 	t := reflect.TypeOf(v).Elem()
 	log.Printf("\nt: %+v\n", t)
 
