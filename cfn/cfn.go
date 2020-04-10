@@ -333,6 +333,8 @@ func makeEventFunc(h Handler) eventFunc {
 			}
 
 			if isMutatingAction(event.Action) {
+				log.Printf("isMutatingAction")
+				log.Printf("translating status with progEvt.OperationStatus %+v, event.RequestData.ResourceProperties: %+v", progEvt.OperationStatus, event.RequestData.ResourceProperties)
 				callbackAdapter.ReportStatus(translateStatus(progEvt.OperationStatus), event.RequestData.ResourceProperties, progEvt.Message, string(r.ErrorCode))
 			}
 

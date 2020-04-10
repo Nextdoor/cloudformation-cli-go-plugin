@@ -65,6 +65,7 @@ func (c *CloudFormationCallbackAdapter) reportProgress(code string, operationSta
 	}
 
 	if len(resourceModel) != 0 {
+		log.Printf("\nin reportProgress: resourceModel %+v\n", resourceModel)
 		in.SetResourceModel(string(resourceModel))
 	}
 
@@ -73,6 +74,7 @@ func (c *CloudFormationCallbackAdapter) reportProgress(code string, operationSta
 	}
 
 	if len(currentOperationStatus) != 0 {
+		log.Printf("\nin reportProgress: currentOperationStatus %+v\n", currentOperationStatus)
 		in.SetCurrentOperationStatus(string(currentOperationStatus))
 	}
 
