@@ -2,6 +2,7 @@ package cfn
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/aws-cloudformation/cloudformation-cli-go-plugin/cfn/cfnerr"
 	"github.com/aws-cloudformation/cloudformation-cli-go-plugin/cfn/credentials"
@@ -57,10 +58,13 @@ type requestContext struct {
 // validateEvent ensures the event struct generated from the Lambda SDK is correct
 // A number of the RPDK values are required to be a certain type/length
 func validateEvent(event *event) error {
+	log.Printf("validating event %+v", event)
 	if err := validator.Validate(event); err != nil {
+		log.Printf("validation err %+v", err)
 		return cfnerr.New(validationError, "Failed Validation", err)
 	}
 
+	log.Printf("no validation err")
 	return nil
 }
 

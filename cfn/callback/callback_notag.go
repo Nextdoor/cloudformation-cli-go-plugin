@@ -30,6 +30,10 @@ func New(client cloudformationiface.CloudFormationAPI, bearerToken string) *Clou
 // ReportStatus reports the status back to the Cloudformation service of a handler
 // that has moved from Pending to In_Progress
 func (c *CloudFormationCallbackAdapter) ReportStatus(operationStatus Status, model []byte, message string, errCode string) error {
+	log.Printf("in ReportStatus with str model %s", string(model))
+	log.Printf("in ReportStatus with message %s", message)
+	log.Printf("in ReportStatus with errCode %s", errCode)
+	log.Printf("in ReportStatus with operationStatus %+v", operationStatus)
 	if err := c.reportProgress(errCode, operationStatus, InProgress, model, message); err != nil {
 		return err
 	}
@@ -38,6 +42,7 @@ func (c *CloudFormationCallbackAdapter) ReportStatus(operationStatus Status, mod
 
 // ReportInitialStatus reports the initial status back to the Cloudformation service.
 func (c *CloudFormationCallbackAdapter) ReportInitialStatus() error {
+	log.Printf("ReportInitialStatus")
 	if err := c.reportProgress("", InProgress, Pending, []byte(""), ""); err != nil {
 		return err
 	}
@@ -46,6 +51,7 @@ func (c *CloudFormationCallbackAdapter) ReportInitialStatus() error {
 
 // ReportFailureStatus reports the failure status back to the Cloudformation service.
 func (c *CloudFormationCallbackAdapter) ReportFailureStatus(model []byte, errCode string, handlerError error) error {
+	log.Printf("ReportFailureStatus with handlerError.Error() %+v", handlerError.Error())
 	if err := c.reportProgress(errCode, Failed, InProgress, model, handlerError.Error()); err != nil {
 		return err
 	}
@@ -54,7 +60,11 @@ func (c *CloudFormationCallbackAdapter) ReportFailureStatus(model []byte, errCod
 
 // ReportProgress reports the current status back to the Cloudformation service.
 func (c *CloudFormationCallbackAdapter) reportProgress(code string, operationStatus Status, currentOperationStatus Status, resourceModel []byte, statusMessage string) error {
-
+	log.Printf("in reportProgress with code %s", code)
+	log.Printf("in reportProgress with operationStatus %+v", operationStatus)
+	log.Printf("in reportProgress with currentOperationStatus %+v", currentOperationStatus)
+	log.Printf("in reportProgress with str resourceModel %+v", string(resourceModel))
+	log.Printf("in reportProgress with statusMessage %s", statusMessage)
 	in := cloudformation.RecordHandlerProgressInput{
 		BearerToken:     aws.String(c.bearerToken),
 		OperationStatus: aws.String(TranslateOperationStatus(operationStatus)),
@@ -79,6 +89,7 @@ func (c *CloudFormationCallbackAdapter) reportProgress(code string, operationSta
 	}
 
 	c.logger.Printf("Record progress: %v", &in)
+	log.Printf("Progress being logged %+v", in)
 
 	return nil
 }
@@ -109,6 +120,7 @@ func TranslateErrorCode(errorCode string) string {
 
 // TranslateOperationStatus Translate the operation Status into a standard Cloudformation error
 func TranslateOperationStatus(operationStatus Status) string {
+	log.Printf("translating operationsStatus %+v", operationStatus)
 
 	switch operationStatus {
 	case Success:

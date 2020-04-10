@@ -126,6 +126,7 @@ func router(a string, h Handler) (handlerFunc, error) {
 		return h.List, nil
 	default:
 		// No action matched, we should fail and return an InvalidRequestErrorCode
+		log.Printf("Error no action matched")
 		return nil, cfnerr.New(invalidRequestError, "No action/invalid action specified", nil)
 	}
 }
@@ -154,6 +155,7 @@ func invoke(handlerFn handlerFunc, request handler.Request, metricsPublisher *me
 			log.Printf("\nstart %+v\n", start)
 			metricsPublisher.PublishInvocationMetric(time.Now(), string(action))
 
+			log.Printf("request in invoke %+v", request)
 			// Report the work is done.
 			progEvt := handlerFn(request)
 			log.Printf("\nprogEvt %+v\n", progEvt)
@@ -200,6 +202,7 @@ func isMutatingAction(action string) bool {
 	case deleteAction:
 		return true
 	}
+	log.Printf("returning false from isMutatingAction")
 	return false
 }
 
@@ -220,6 +223,7 @@ func translateStatus(operationStatus handler.Status) callback.Status {
 
 func processinvoke(handlerFn handlerFunc, event *event, request handler.Request, metricsPublisher *metrics.Publisher) handler.ProgressEvent {
 	progEvt, err := invoke(handlerFn, request, metricsPublisher, event.Action)
+	log.Printf("progEvt after calling invoke in processInvoke %+v", progEvt)
 	if err != nil {
 		log.Printf("Handler invocation failed: %v", err)
 		return handler.NewFailedEvent(err)
@@ -293,9 +297,11 @@ func makeEventFunc(h Handler) eventFunc {
 
 		// If this invocation was triggered by a 're-invoke' CloudWatch Event, clean it up.
 		if event.RequestContext.CallbackContext != nil {
+			log.Printf("event.RequestContext.CallbackContext != nil, value is %+v", event.RequestContext.CallbackContext)
 			err := invokeScheduler.CleanupEvents(event.RequestContext.CloudWatchEventsRuleName, event.RequestContext.CloudWatchEventsTargetID)
 
 			if err != nil {
+				log.Printf("err calling cleanupEvents")
 				// We will log the error in the metric, but carry on.
 				cfnErr := cfnerr.New(serviceInternalError, "Cloudwatch Event clean up error", err)
 				metricsPublisher.PublishExceptionMetric(time.Now(), string(event.Action), cfnErr)
@@ -304,13 +310,17 @@ func makeEventFunc(h Handler) eventFunc {
 
 		if len(event.RequestContext.CallbackContext) == 0 || event.RequestContext.Invocation == 0 {
 			// Acknowledge the task for first time invocation.
+			log.Printf("Acknowledge the task for first time invocation.")
 			if err := callbackAdapter.ReportInitialStatus(); err != nil {
 				return re.report(event, "callback initial report error", err, serviceInternalError)
 			}
 		}
 
+		log.Printf("about to setPublishSatus")
 		re.setPublishSatus(true)
+		log.Printf("just setPublishSatus")
 		for {
+			log.Printf("Generating new request with LogicalResourceId and ResourceProperties")
 			request := handler.NewRequest(
 				event.RequestData.LogicalResourceID,
 				event.RequestContext.CallbackContext,
@@ -319,8 +329,10 @@ func makeEventFunc(h Handler) eventFunc {
 				event.RequestData.ResourceProperties,
 			)
 			event.RequestContext.Invocation = event.RequestContext.Invocation + 1
+			log.Printf("event before processinvoke: %+v", event)
 
 			progEvt := processinvoke(handlerFn, event, request, metricsPublisher)
+			log.Printf("progEvt after processinvoke: %+v", progEvt)
 
 			r, err := newResponse(&progEvt, event.BearerToken)
 			if err != nil {
@@ -329,6 +341,7 @@ func makeEventFunc(h Handler) eventFunc {
 			}
 
 			if !isMutatingAction(event.Action) && r.OperationStatus == handler.InProgress {
+				log.Printf("not is mutating action and handler.InProgress")
 				return re.report(event, "Response error", errors.New("READ and LIST handlers must return synchronous"), invalidRequestError)
 			}
 
@@ -344,14 +357,17 @@ func makeEventFunc(h Handler) eventFunc {
 				local, err := reschedule(ctx, invokeScheduler, progEvt, event)
 
 				if err != nil {
+					log.Printf("err from reschedule %+v", err)
 					return re.report(event, "Reschedule error", err, serviceInternalError)
 				}
 
 				// If not computing local, exit and return response.
 				if !local {
+					log.Printf("!local")
 					return r, nil
 				}
 			default:
+				log.Printf("default if not handler.InProgress")
 				return r, nil
 			}
 
@@ -365,6 +381,7 @@ func makeTestEventFunc(h Handler) testEventFunc {
 	return func(ctx context.Context, event *testEvent) (handler.ProgressEvent, error) {
 		handlerFn, err := router(event.Action, h)
 		if err != nil {
+			log.Printf("err from router in makeTestEventFunc %+v", err)
 			return handler.NewFailedEvent(err), err
 		}
 		request := handler.NewRequest(
