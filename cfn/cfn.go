@@ -44,10 +44,10 @@ const (
 )
 
 // MaxRetries is the number of times to try to call the Handler after it fails to respond.
-var MaxRetries int = 3
+var MaxRetries int = 5
 
 // Timeout is the length of time to wait before giving up on a request.
-var Timeout time.Duration = 60 * time.Second
+var Timeout time.Duration = 150 * time.Second
 
 // Handler is the interface that all resource providers must implement
 //
@@ -135,10 +135,12 @@ func invoke(handlerFn handlerFunc, request handler.Request, metricsPublisher *me
 	attempts := 0
 
 	for {
+		log.Printf("attempts %d", attempts)
 		attempts++
 		// Create a context that is both manually cancellable and will signal
 		// a cancel at the specified duration.
 		ctx, cancel := context.WithTimeout(context.Background(), Timeout)
+		log.Printf("\nctx: %+v", ctx)
 		//We always defer a cancel.
 		defer cancel()
 
@@ -149,10 +151,12 @@ func invoke(handlerFn handlerFunc, request handler.Request, metricsPublisher *me
 		go func() {
 			//start the timer
 			start := time.Now()
+			log.Printf("\nstart %+v\n", start)
 			metricsPublisher.PublishInvocationMetric(time.Now(), string(action))
 
 			// Report the work is done.
 			progEvt := handlerFn(request)
+			log.Printf("\nprogEvt %+v\n", progEvt)
 
 			marshaled, _ := encoding.Marshal(progEvt.ResourceModel)
 			log.Printf("Received event: %s\nMessage: %s\nBody: %s",
@@ -187,6 +191,7 @@ func invoke(handlerFn handlerFunc, request handler.Request, metricsPublisher *me
 }
 
 func isMutatingAction(action string) bool {
+	log.Printf("\nin isMutatingAction %+v\n", action)
 	switch action {
 	case createAction:
 		return true
@@ -199,6 +204,7 @@ func isMutatingAction(action string) bool {
 }
 
 func translateStatus(operationStatus handler.Status) callback.Status {
+	log.Printf("\noperationStatus %+v\n", operationStatus)
 	switch operationStatus {
 	case handler.Success:
 		return callback.Success
@@ -223,6 +229,8 @@ func processinvoke(handlerFn handlerFunc, event *event, request handler.Request,
 
 func reschedule(ctx context.Context, invokeScheduler InvokeScheduler, progEvt handler.ProgressEvent, event *event) (bool, error) {
 	cusCtx, delay := marshalCallback(&progEvt)
+	log.Printf("\nin reschedule progEvt: %+v\n", progEvt)
+	log.Printf("\ncusCtx %+v, delay %+v\n", cusCtx, delay)
 	ids, err := scheduler.GenerateCloudWatchIDS()
 	if err != nil {
 		return false, err
@@ -232,6 +240,7 @@ func reschedule(ctx context.Context, invokeScheduler InvokeScheduler, progEvt ha
 	event.RequestContext.CloudWatchEventsTargetID = ids.Target
 	// Update model properties
 	m, err := encoding.Marshal(progEvt.ResourceModel)
+	log.Printf("in reschedule m %+v", m)
 	if err != nil {
 		return false, err
 	}
@@ -239,11 +248,15 @@ func reschedule(ctx context.Context, invokeScheduler InvokeScheduler, progEvt ha
 	// Rebuild the context
 	event.RequestContext.CallbackContext = cusCtx
 	callbackRequest, err := json.Marshal(event)
+	log.Printf("\ncallbackRequest: %+v\n", callbackRequest)
 	if err != nil {
+		log.Printf("\nerr marshalling in reschedule: %+v\n", err)
 		return false, err
 	}
 	scheResult, err := invokeScheduler.Reschedule(ctx, delay, string(callbackRequest), ids)
+	log.Printf("\nscheResult: %+v\n", scheResult)
 	if err != nil {
+		log.Printf("\nerr calling invokeScheduler.Reschedule in reschedule: %+v\n", err)
 		return false, err
 	}
 	return scheResult.ComputeLocal, nil
@@ -325,6 +338,7 @@ func makeEventFunc(h Handler) eventFunc {
 
 			switch r.OperationStatus {
 			case handler.InProgress:
+				log.Printf("\nEvent: InProgress, r: %+v\n", r)
 				local, err := reschedule(ctx, invokeScheduler, progEvt, event)
 
 				if err != nil {
