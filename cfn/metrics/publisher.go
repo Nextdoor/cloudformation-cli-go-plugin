@@ -95,6 +95,12 @@ func (p *Publisher) publishMetric(metricName string, data map[string]string, uni
 	var d []*cloudwatch.Dimension
 
 	for k, v := range data {
+		log.Printf("logging in range data")
+		log.Printf("dimension name k: %s", k)
+		log.Printf("dimension value v: %s", v)
+
+		log.Printf("dimension name aws.String(k): %+v", aws.String(k))
+		log.Printf("dimension value aws.String(v): %+v", aws.String(v))
 		dim := &cloudwatch.Dimension{
 			Name:  aws.String(k),
 			Value: aws.String(v),

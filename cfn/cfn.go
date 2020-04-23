@@ -285,7 +285,8 @@ func makeEventFunc(h Handler) eventFunc {
 			if err != nil {
 				// We will log the error in the metric, but carry on.
 				cfnErr := cfnerr.New(serviceInternalError, "Cloudwatch Event clean up error", err)
-				metricsPublisher.PublishExceptionMetric(time.Now(), string(event.Action), cfnErr)
+				log.Printf("cfnErr while cleaning up events: %+v", cfnErr)
+				//metricsPublisher.PublishExceptionMetric(time.Now(), string(event.Action), cfnErr)
 			}
 		}
 
