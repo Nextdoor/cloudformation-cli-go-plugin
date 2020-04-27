@@ -88,7 +88,7 @@ func (s *Scheduler) Reschedule(lambdaCtx context.Context, secsFromNow int64, cal
 
 	if secsFromNow < 60 && secondsUnitDeadline > float64(secsFromNow)*1.2 {
 
-		s.logger.Printf("Scheduling re-invoke locally after %v seconds, with Context %s", secsFromNow, string(callbackRequest))
+		s.logger.Printf("Scheduling re-invoke locally after %v seconds", secsFromNow)
 
 		time.Sleep(time.Duration(secsFromNow) * time.Second)
 
