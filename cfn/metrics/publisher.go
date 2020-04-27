@@ -62,6 +62,7 @@ func (p *Publisher) PublishExceptionMetric(date time.Time, action string, e erro
 		DimensionKeyExceptionType: e.Error(),
 		DimensionKeyResourceType:  p.resourceType,
 	}
+	log.Printf("PublishExceptionMetric")
 
 	p.publishMetric(MetricNameHanderException, dimensions, cloudwatch.StandardUnitCount, 1.0, date)
 }
@@ -72,6 +73,7 @@ func (p *Publisher) PublishInvocationMetric(date time.Time, action string) {
 		DimensionKeyAcionType:    string(action),
 		DimensionKeyResourceType: p.resourceType,
 	}
+	log.Printf("PublishInvocationMetric")
 
 	p.publishMetric(MetricNameHanderInvocationCount, dimensions, cloudwatch.StandardUnitCount, 1.0, date)
 
@@ -85,6 +87,7 @@ func (p *Publisher) PublishDurationMetric(date time.Time, action string, secs fl
 		DimensionKeyAcionType:    string(action),
 		DimensionKeyResourceType: p.resourceType,
 	}
+	log.Printf("PublishDurationMetric")
 
 	p.publishMetric(MetricNameHanderDuration, dimensions, cloudwatch.StandardUnitMilliseconds, secs, date)
 
