@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -212,8 +213,10 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 func Unstringify(data map[string]interface{}, v interface{}) error {
 	clean := make(map[string]interface{})
 	for k := range data {
+		log.Printf("UNSTRINGIFY key %s", k)
 		val := data[k]
 		strippedKey := strings.Replace(k, "/", "", 1)
+		log.Printf("UNSTRINGIFY strippedKey %s", strippedKey)
 		clean[strippedKey] = val
 	}
 

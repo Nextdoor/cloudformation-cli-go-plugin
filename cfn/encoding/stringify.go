@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 )
@@ -39,6 +40,7 @@ func stringifyStructType(t reflect.Type) reflect.Type {
 
 // Stringify converts any supported type into a stringified value
 func Stringify(v interface{}) (interface{}, error) {
+	log.Printf("STRINGIFY interface v %+v", v)
 	var err error
 
 	if v == nil {
