@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/aws/aws-sdk-go/aws/session"
+	"log"
 
 	"github.com/aws-cloudformation/cloudformation-cli-go-plugin/cfn/cfnerr"
 	"github.com/aws-cloudformation/cloudformation-cli-go-plugin/cfn/encoding"
@@ -67,6 +68,7 @@ func (r *Request) Unmarshal(v interface{}) error {
 	}
 
 	if err := encoding.Unmarshal(r.resourcePropertiesBody, v); err != nil {
+		log.Printf("resources body in unmarshal %+v", r.resourcePropertiesBody)
 		return cfnerr.New(marshalingError, "Unable to convert type", err)
 	}
 
