@@ -212,11 +212,10 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 // and populates it into the supplied interface
 func Unstringify(data map[string]interface{}, v interface{}) error {
 	clean := make(map[string]interface{})
+	log.Printf("UNSTRINGIFY clean data map %+v", clean)
 	for k := range data {
-		log.Printf("UNSTRINGIFY key %s", k)
 		val := data[k]
 		strippedKey := strings.Replace(k, "/", "", 1)
-		log.Printf("UNSTRINGIFY strippedKey %s", strippedKey)
 		clean[strippedKey] = val
 	}
 
@@ -234,6 +233,7 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 		}
 
 		if value, ok := clean[jsonName]; ok {
+			log.Printf("UNSTRINGIFY %s: %+v", jsonName, value)
 			newValue, err := convertType(f.Type, value)
 			if err != nil {
 				return err
