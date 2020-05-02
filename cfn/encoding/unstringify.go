@@ -219,15 +219,18 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 	clean := make(map[string]interface{})
 	log.Printf("UNSTRINGIFY data map before clean %+v", data)
 	for k := range data {
-		log.Printf("UNSTRINGIFY k %s", k)
 		val := data[k]
+		log.Printf("UNSTRINGIFY key %s: val %+v", k, val)
 		strippedKey := strings.Replace(k, "/", "", 1)
 		clean[strippedKey] = val
+		log.Printf("UNSTRINGIFY strippedKey %s: %+v", strippedKey, clean[strippedKey])
 	}
 
 	t := reflect.TypeOf(v).Elem()
+	log.Printf("UNSTRINGIFY t %+v", t)
 
 	val := reflect.ValueOf(v).Elem()
+	log.Printf("UNSTRINGIFY val2 %+v", val)
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
