@@ -179,6 +179,7 @@ func convertFloat64(i interface{}, pointer bool) (reflect.Value, error) {
 }
 
 func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
+	log.Printf("in convertType converting i: %+v to type %+v", i, t)
 	pointer := false
 	if t.Kind() == reflect.Ptr {
 		pointer = true
@@ -187,9 +188,11 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 
 	switch t.Kind() {
 	case reflect.Struct:
+		log.Printf("convertType calling convertStruct")
 		return convertStruct(i, t, pointer)
 
 	case reflect.Slice:
+		log.Printf("convertType calling convertSlice")
 		return convertSlice(i, t, pointer)
 
 	case reflect.Map:
@@ -197,18 +200,23 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 		return convertMap(i, t, pointer)
 
 	case reflect.String:
+		log.Printf("convertType calling convertString")
 		return convertString(i, pointer)
 
 	case reflect.Bool:
+		log.Printf("convertType calling convertBool")
 		return convertBool(i, pointer)
 
 	case reflect.Int:
+		log.Printf("convertType calling convertInt")
 		return convertInt(i, pointer)
 
 	case reflect.Float64:
+		log.Printf("convertType calling convertFloat")
 		return convertFloat64(i, pointer)
 
 	default:
+		log.Printf("convertType UNSUPPORTED")
 		return zeroValue, fmt.Errorf("Unsupported type %v", t)
 	}
 }
