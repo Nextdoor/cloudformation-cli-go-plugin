@@ -55,6 +55,7 @@ func convertSlice(i interface{}, t reflect.Type, pointer bool) (reflect.Value, e
 
 func convertMap(i interface{}, t reflect.Type, pointer bool) (reflect.Value, error) {
 	m, ok := i.(map[string]interface{})
+	log.Printf("\tm %+v", m)
 	if !ok {
 		return zeroValue, fmt.Errorf("Cannot convert %T to map with string keys", i)
 	}
@@ -63,7 +64,10 @@ func convertMap(i interface{}, t reflect.Type, pointer bool) (reflect.Value, err
 	out.Elem().Set(reflect.MakeMap(t))
 
 	for k, v := range m {
+		log.Printf("\tconvertMap")
+		log.Printf("\tt.Elem() %+v", t.Elem())
 		val, err := convertType(t.Elem(), v)
+		log.Printf("\tval %+v", val)
 		if err != nil {
 			return zeroValue, err
 		}
@@ -189,6 +193,7 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 		return convertSlice(i, t, pointer)
 
 	case reflect.Map:
+		log.Printf("convertType calling convertMap on %+v", i)
 		return convertMap(i, t, pointer)
 
 	case reflect.String:
@@ -212,8 +217,9 @@ func convertType(t reflect.Type, i interface{}) (reflect.Value, error) {
 // and populates it into the supplied interface
 func Unstringify(data map[string]interface{}, v interface{}) error {
 	clean := make(map[string]interface{})
-	log.Printf("UNSTRINGIFY clean data map %+v", clean)
+	log.Printf("UNSTRINGIFY data map before clean %+v", data)
 	for k := range data {
+		log.Printf("UNSTRINGIFY k %s", k)
 		val := data[k]
 		strippedKey := strings.Replace(k, "/", "", 1)
 		clean[strippedKey] = val
@@ -225,6 +231,7 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
+		log.Printf("UNSTRINGIFY f %+v", f)
 
 		jsonName := f.Name
 		jsonTag := strings.Split(f.Tag.Get("json"), ",")
