@@ -243,6 +243,12 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 	log.Printf("UNSTRINGIFY t.NumField() %d", t.NumField())
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
+		log.Printf("i %d/%d", i, t.NumField())
+		log.Printf("UNSTRINGIFY f %+v f.Name %s", f, f.Name)
+	}
+	for i := 0; i < t.NumField(); i++ {
+		log.Printf("i %d/%d", i, t.NumField())
+		f := t.Field(i)
 		log.Printf("UNSTRINGIFY f %+v", f)
 
 		jsonName := f.Name
@@ -259,10 +265,13 @@ func Unstringify(data map[string]interface{}, v interface{}) error {
 			log.Printf("UNSTRINGIFY %s: %+v", jsonName, value)
 			newValue, err := convertType(f.Type, value)
 			if err != nil {
+				log.Printf("returning early with err %+v", err)
 				return err
 			}
 
 			val.FieldByName(f.Name).Set(newValue)
+		} else {
+			log.Printf("cannot index with jsonName %s", jsonName)
 		}
 	}
 
