@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"sync"
 	"time"
 
 	"github.com/aws-cloudformation/cloudformation-cli-go-plugin/cfn/cfnerr"
@@ -38,6 +39,8 @@ const (
 	deleteAction  = "DELETE"
 	listAction    = "LIST"
 )
+
+var once sync.Once
 
 // Handler is the interface that all resource providers must implement
 //
@@ -97,15 +100,21 @@ type handlerFunc func(request handler.Request) handler.ProgressEvent
 // MakeEventFunc is the entry point to all invocations of a custom resource
 func makeEventFunc(h Handler) eventFunc {
 	return func(ctx context.Context, event *event) (response, error) {
-		//pls := credentials.SessionFromCredentialsProvider(&event.RequestData.PlatformCredentials)
 		ps := credentials.SessionFromCredentialsProvider(&event.RequestData.ProviderCredentials)
-		l, err := logging.NewCloudWatchLogsProvider(
-			cloudwatchlogs.New(ps),
-			event.RequestData.ProviderLogGroupName,
-		)
-		// Set default logger to output to CWL in the provider account
-		logging.SetProviderLogOutput(l)
 		m := metrics.New(cloudwatch.New(ps), event.ResourceType)
+		once.Do(func() {
+			l, err := logging.NewCloudWatchLogsProvider(
+				cloudwatchlogs.New(ps),
+				event.RequestData.ProviderLogGroupName,
+			)
+			if err != nil {
+				log.Printf("Error: %v, Logging to Stdout", err)
+				m.PublishExceptionMetric(time.Now(), event.Action, err)
+				l = os.Stdout
+			}
+			// Set default logger to output to CWL in the provider account
+			logging.SetProviderLogOutput(l)
+		})
 		re := newReportErr(m)
 		if err := scrubFiles("/tmp"); err != nil {
 			log.Printf("Error: %v", err)
@@ -119,10 +128,18 @@ func makeEventFunc(h Handler) eventFunc {
 		if err := validateEvent(event); err != nil {
 			return re.report(event, "validation error", err, invalidRequestError)
 		}
-
+		rctx := handler.RequestContext{
+			StackID:    event.StackID,
+			Region:     event.Region,
+			AccountID:  event.AWSAccountID,
+			StackTags:  event.RequestData.StackTags,
+			SystemTags: event.RequestData.SystemTags,
+			NextToken:  event.NextToken,
+		}
 		request := handler.NewRequest(
 			event.RequestData.LogicalResourceID,
 			event.CallbackContext,
+			rctx,
 			credentials.SessionFromCredentialsProvider(&event.RequestData.CallerCredentials),
 			event.RequestData.PreviousResourceProperties,
 			event.RequestData.ResourceProperties,
@@ -180,9 +197,17 @@ func makeTestEventFunc(h Handler) testEventFunc {
 		if err != nil {
 			return handler.NewFailedEvent(err), err
 		}
+		rctx := handler.RequestContext{
+			Region:     event.Request.Region,
+			AccountID:  event.Request.AWSAccountID,
+			StackTags:  event.Request.DesiredResourceTags,
+			SystemTags: event.Request.SystemTags,
+			NextToken:  event.Request.NextToken,
+		}
 		request := handler.NewRequest(
 			event.Request.LogicalResourceIdentifier,
 			event.CallbackContext,
+			rctx,
 			credentials.SessionFromCredentialsProvider(&event.Credentials),
 			event.Request.PreviousResourceState,
 			event.Request.DesiredResourceState,
